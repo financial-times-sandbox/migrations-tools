@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 const item = process.argv[2];
-const Git = require('nodegit');
+const NodeGit = require('nodegit');
 
 if (item) {
-    process.stdout.write(`Cool! I'm gonna do stuff with ${item} now then. Thanks!`);
+    console.log(`Cool! I'm gonna do stuff with ${item} now then. Thanks!`);
 } else {
-    process.stderr.write(`Error: No item specified!`);
-    process.exit(1);
+    throw Error(`Error: No item specified!`);
 }
 
 let cloneOptions = {};
@@ -21,7 +20,14 @@ cloneOptions.fetchOpts = {
     }
 };
 
-Git.Clone(`https://github.com/financial-times/${item}`, './tmp', cloneOptions)
+console.log({ GITHUB_TOKEN: process.env.GITHUB_TOKEN });
+
+const repoUrl = `https://github.com/Financial-Times/${item}.git`;
+const cloneTarget = `./tmp/${item}`;
+
+console.log({ repoUrl });
+
+NodeGit.Clone(repoUrl, cloneTarget, cloneOptions)
     .then((repo) => {
         return repo.config();
     })
