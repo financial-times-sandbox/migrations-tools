@@ -37,19 +37,25 @@ function runProcess (processToRun) {
     return new Promise((resolve, reject) => {
 
         const cmd = spawn('sh', ['-c', processToRun], { env: process.cwd() });
+        let output = '';
 
         cmd.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
+            output += data;
         });
-    
+
         cmd.stderr.on('data', (data) => {
-            console.log(`stderr: ${data}`);
+            output += data;
         });
 
-        // TODO: resolve or reject when process closes
-        // TODO: reject when process errors
+        cmd.on('error', reject);
 
-        resolve();
+        cmd.on('close', (code) => {
+            if (code === 0) {
+                resolve(output);
+            } else {
+                reject(new Error(output));
+            }
+        });
 
     });
 }
@@ -59,13 +65,16 @@ function runProcess (processToRun) {
     for (let item of migrationConfig.collection) {
 
         console.log(`Running migration for item '${item}'...`);
-    
-        const processToRun = `${migrationScriptPath} ${item}`;
-    
+
+        // TODO: Why do we need to call node?
+        const processToRun = `node ${migrationScriptPath} ${item}`;
+
         console.log({ processToRun });
-    
-        await runProcess(processToRun);
-    
+
+        const processOutput  = await runProcess(processToRun);
+
+        console.log(processOutput);
+
     }
 
 })();
