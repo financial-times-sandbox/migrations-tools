@@ -9,3 +9,5 @@
     ```
     npx --package ./runner runner migrations/2018-11-21_test
     ```
+
+**NOTE:** You'll need to `rm -rf ./tmp` after each run.
