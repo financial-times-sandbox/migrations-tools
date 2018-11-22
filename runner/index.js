@@ -7,49 +7,28 @@
 const path = require('path');
 const spawn = require('child_process').spawn;
 
-// Action: Get the migration to run
-const migrationName = process.argv[2];
-
-const migrationPath = path.resolve(`${process.cwd()}/${migrationName}`);
-
-const migrationConfigPath = `${migrationPath}/config.json`;
-
-console.log({ migrationConfigPath });
-
-// Action: Read the migration config
-const migrationConfig = require(migrationConfigPath);
-
-console.log({ migrationConfig });
-
-const migrationScriptPath = `${migrationPath}/${migrationConfig.script}`;
-
-console.log({ migrationScriptPath });
-
-// Action: Create a GitHub project using the migration name
-
-// TODO: Require Octokit, authenticate with GitHub, create project
-// ...
-
-// Action: Loop through collection and run migration script for each
-
 function runProcess (processToRun) {
 
     return new Promise((resolve, reject) => {
 
-        const cmd = spawn('sh', ['-c', processToRun], { env: process.cwd() });
+        const sh = spawn('sh', ['-c', processToRun], {
+            env: process.env,
+            cwd: process.cwd()
+        });
+
         let output = '';
 
-        cmd.stdout.on('data', (data) => {
+        sh.stdout.on('data', (data) => {
             output += data;
         });
 
-        cmd.stderr.on('data', (data) => {
+        sh.stderr.on('data', (data) => {
             output += data;
         });
 
-        cmd.on('error', reject);
+        sh.on('error', reject);
 
-        cmd.on('close', (code) => {
+        sh.on('close', (code) => {
             if (code === 0) {
                 resolve(output);
             } else {
@@ -60,23 +39,46 @@ function runProcess (processToRun) {
     });
 }
 
+// Action: Loop through collection and run migration script for each
 (async () => {
+
+    // Action: Get the migration to run
+    const migrationDirectory = process.argv[2];
+    const migrationPath = path.resolve(`${process.cwd()}/${migrationDirectory}`);
+    const migrationConfigPath = `${migrationPath}/config.js`; // TODO: .json
+
+    // Action: Read the migration config
+    const migrationConfig = require(migrationConfigPath);
+
+    // console.log({ migrationConfigPath });
+    // console.log({ migrationConfig });
+    // console.log({ migrationScriptPath });
+
+    // Action: Create a GitHub project using the migration name
+    // TODO: Require Octokit, authenticate with GitHub, create project
+    const migrationName = migrationConfig.name;
+
+    const migrationScriptPath = `${migrationPath}/${migrationConfig.script}`;
 
     for (let item of migrationConfig.collection) {
 
-        console.log(`Running migration for item '${item}'...`);
+        console.log('\n===\n');
+        console.log(`Running migration script for item '${item}'...`);
 
-        // TODO: Why do we need to call node?
+        // TODO: Why do we need to call `node` on OS X?
         const processToRun = `node ${migrationScriptPath} ${item}`;
 
-        console.log({ processToRun });
+        // console.log({ processToRun });
 
-        const processOutput  = await runProcess(processToRun);
-
-        console.log(processOutput);
+        try {
+            const processOutput  = await runProcess(processToRun);
+            console.log(processOutput);
+        } catch (err) {
+            console.error(new Error(`Error running migration script for ${item}: ${err.message}`));
+        }
 
     }
 
-})();
+    // TODO: Action: Add PRs/issues as cards on the migration's GitHub project
 
-// Action: Add PR or issue to GitHub project
+})();

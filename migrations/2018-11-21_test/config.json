@@ -1,8 +1,0 @@
-{
-    "name": "test",
-    "collection": [
-        "next-webhooks",
-        "n-circle2-cli"
-    ],
-    "script": "scripts/test.js"
-}

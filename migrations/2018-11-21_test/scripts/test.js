@@ -1,39 +1,39 @@
 #!/usr/bin/env node
 
-const item = process.argv[2];
-const NodeGit = require('nodegit');
+const Git = require('../../lib/git');
 
-if (item) {
-    console.log(`Cool! I'm gonna do stuff with ${item} now then. Thanks!`);
-} else {
+const item = process.argv[2];
+
+if (!item) {
     throw Error(`Error: No item specified!`);
 }
 
-let cloneOptions = {};
+(async () => {
 
-cloneOptions.fetchOpts = {
-    callbacks: {
-        certificateCheck: function () { return 1; },
-        credentials: function () {
-            return NodeGit.Cred.userpassPlaintextNew(process.env.GITHUB_TOKEN, "x-oauth-basic");
-        }
-    }
-};
+    const branchName = 'test-migration';
 
-console.log({ GITHUB_TOKEN: process.env.GITHUB_TOKEN });
+    const gitRepo = new Git();
 
-const repoUrl = `https://github.com/Financial-Times/${item}.git`;
-const cloneTarget = `./tmp/${item}`;
+    await gitRepo.clone(`financial-times-sandbox/${item}`);
+    await gitRepo.createAndCheckoutBranch({ branchName });
 
-console.log({ repoUrl });
+    await gitRepo.addFile('.gitignore', `${__dirname}/files`);
 
-NodeGit.Clone(repoUrl, cloneTarget, cloneOptions)
-    .then((repo) => {
-        return repo.config();
-    })
-    .then((config) => {
-        console.log({ config });
-    })
-    .catch((error) => {
-        console.log(error);
-    });
+    // console.log(await gitRepo.repo.getStatus());
+
+    // TODO: Modify the README
+
+    // TODO: Delete the LICENSE file
+
+    // ----
+
+    // TODO: Commit changes
+
+    // TODO: Push branch
+
+    // TODO: Create PR
+
+    // TODO:
+    // console.log(JSON.stringify({ pull_request_id: 1234 }))
+
+})();
