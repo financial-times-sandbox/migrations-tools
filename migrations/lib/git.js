@@ -75,7 +75,7 @@ class Git {
 
         console.log(`File added to git: ${targetFilepath}`);
 
-        console.log(await this.repo.getStatusExt());
+        // console.log(await this.repo.getStatusExt());
 
         return Promise.resolve();
     }
